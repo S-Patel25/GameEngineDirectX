@@ -52,8 +52,8 @@ bool Window::init()
     wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
     wc.hInstance = NULL;
-    wc.lpszClassName = L"MyWindowClass";
-    wc.lpszMenuName = L"";
+    wc.lpszClassName = "MyWindowClass";
+    wc.lpszMenuName = "";
     wc.style = NULL;
     wc.lpfnWndProc = &WndProc;
 
@@ -63,7 +63,7 @@ bool Window::init()
         return false;
     }
 
-    m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, L"MyWindowClass", L"DirectX Application", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
+    m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, "MyWindowClass", "DirectX", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
         NULL, NULL, NULL, this); //create window based on params
 
     if (!m_hwnd) //null pointer check
@@ -97,7 +97,7 @@ bool Window::broadcast()
 {
     MSG msg;
 
-    while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) < 0)
+    while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
