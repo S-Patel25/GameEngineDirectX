@@ -28,7 +28,7 @@ bool GraphicsEngine::init()
 
     HRESULT res = 0;
 
-    for (UINT driverIndex = 0; driverIndex < numDriverTypes;) //loop through direct x driver types
+    for (UINT driverIndex = 0; driverIndex < numDriverTypes;) //loop through direct x driver types till finds succesful one
     {
          res = D3D11CreateDevice(NULL, driverTypes[driverIndex], NULL, NULL, 
             featureLevels, numFeatureLevels,
@@ -48,15 +48,23 @@ bool GraphicsEngine::init()
         return false;
     }
 
-
+    mD3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&mDxgiDevice);
+    mDxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&mDxgiAdapter);
+    mDxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&mDxgiFactory);
 
     return true;
 }
 
 bool GraphicsEngine::release()
 {
+    mDxgiDevice->Release();
+    mDxgiAdapter->Release();
+    mDxgiFactory->Release();
+
     mImmContext->Release();
     mD3dDevice->Release(); //release resources used
+
+
 
     return true;
 }
@@ -65,4 +73,9 @@ GraphicsEngine* GraphicsEngine::get()
 {
     static GraphicsEngine engine; //since its static, will only be created once when ran
     return &engine;
+}
+
+SwapChain* GraphicsEngine::createSwapChain()
+{
+    return new SwapChain();
 }

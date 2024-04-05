@@ -13,6 +13,9 @@ public:
 	bool broadcast();
 	bool isRunning();
 
+	RECT getClientWindowRect(); //to get window size of client app
+	void setHWND(HWND hwnd);
+
 	//event stuff
 
 	virtual void onCreate() = 0;
