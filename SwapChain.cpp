@@ -3,51 +3,71 @@
 
 SwapChain::SwapChain()
 {
-
 }
-
 
 bool SwapChain::init(HWND hwnd, UINT width, UINT height)
 {
-    ID3D11Device* device = GraphicsEngine::get()->mD3dDevice;
+	ID3D11Device* device = GraphicsEngine::get()->m_d3d_device;
 
-    //SETTING PROPERTIES OF THE SWAP CHAIN
+	DXGI_SWAP_CHAIN_DESC desc; 
 
-    //SWAP CHAIN is using back and front buffer to handle rendering (renders are drawn in back buffer then once done displayed on front buffer to avoid screen tearing partial frames and has smooth anims)
-    DXGI_SWAP_CHAIN_DESC desc;
-    ZeroMemory(&desc, sizeof(desc)); //makes all values using this mem zero
-    desc.BufferCount = 1;
-    desc.BufferDesc.Width = width;
-    desc.BufferDesc.Height = height;
-    desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //rgb and alpha 8 pixels
-    desc.BufferDesc.RefreshRate.Numerator = 60; //60hz
-    desc.BufferDesc.RefreshRate.Denominator = 1;
-    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; //treat as render targets
-    desc.OutputWindow = hwnd; //handle window (screen)
-    desc.SampleDesc.Quality = 0;
-    desc.Windowed = TRUE;
+	//SWAP CHAIN IS WHAT ALLOWS IMAGE TO RENDER ANMD SHOW (Back buffer renders, front buffer shows)
 
+	ZeroMemory(&desc, sizeof(desc));
+	desc.BufferCount = 1; //swap chain properties
+	desc.BufferDesc.Width = width;
+	desc.BufferDesc.Height = height;
+	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.BufferDesc.RefreshRate.Numerator = 60;
+	desc.BufferDesc.RefreshRate.Denominator = 1;
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	desc.OutputWindow = hwnd;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Windowed = TRUE;
 
-    //make the swap chain based on hwnd param
-    HRESULT hr = GraphicsEngine::get()->mDxgiFactory->CreateSwapChain(device, &desc, &mSwapChain);
+	//Create the swap chain for the window indicated by HWND parameter
+	HRESULT hr = GraphicsEngine::get()->m_dxgi_factory->CreateSwapChain(device, &desc, &m_swap_chain);
 
-    if (FAILED(hr))
-    {
-        return false;
-    }
+	if (FAILED(hr))
+	{
+		return false;
+	}
 
-    if (SUCCEEDED(hr))
-    {
+	ID3D11Texture2D* buffer = NULL;
+	hr = m_swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&buffer);
 
-    }
+	if (FAILED(hr))
+	{
+		return false;
+	}
 
-    return true;
+	hr = device->CreateRenderTargetView(buffer, NULL, &m_rtv);
+	buffer->Release();
+
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	return true;
 }
+
+bool SwapChain::present(bool vsync)
+{
+	m_swap_chain->Present(vsync, NULL);
+
+	return true;
+}
+
 
 bool SwapChain::release()
 {
-    mSwapChain->Release(); //release swap chain instance
-    delete this; //deletes instance of swap chain
+	m_swap_chain->Release();
+	delete this;
+	return true;
+}
 
-    return true;
+SwapChain::~SwapChain()
+{
 }

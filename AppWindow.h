@@ -1,23 +1,19 @@
 #pragma once
-
 #include "Window.h"
 #include "GraphicsEngine.h"
 #include "SwapChain.h"
-
+#include "DeviceContext.h"
 
 class AppWindow : public Window
 {
 public:
 	AppWindow();
-
-
+	~AppWindow();
 
 	// Inherited via Window
-	virtual void onCreate() override; //override from window class
+	virtual void onCreate() override; //override 
 	virtual void onUpdate() override;
 	virtual void onDestroy() override;
 private:
-	SwapChain* mSwapChain;
-
+	SwapChain* m_swap_chain;
 };
-

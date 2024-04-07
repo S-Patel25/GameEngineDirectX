@@ -1,34 +1,38 @@
 #pragma once
-#include <d3d11.h> //directx library
-#include "SwapChain.h"
+#include <d3d11.h>
 
 class SwapChain;
+class DeviceContext;
 
 class GraphicsEngine
 {
-
 public:
+
 	GraphicsEngine();
+	
+	bool init(); //Initialize the GraphicsEngine and DirectX 11 Device
 
-	//intialize the engine and DirectX dev
-	bool init();
+	bool release(); //Release all the resources loaded
 
-	//release all resources loaded
-	bool release();
+	~GraphicsEngine();
+public:
+
+	SwapChain* createSwapChain();
+	DeviceContext* getImmediateDeviceContext();
 
 	static GraphicsEngine* get();
 
-	SwapChain* createSwapChain();
+private:
+
+	DeviceContext* m_imm_device_context;
+
+	ID3D11Device* m_d3d_device;
+	D3D_FEATURE_LEVEL m_feature_level;
+
+	IDXGIDevice* m_dxgi_device;
+	IDXGIAdapter* m_dxgi_adapter;
+	IDXGIFactory* m_dxgi_factory;
 
 private:
-	ID3D11Device* mD3dDevice;
-	D3D_FEATURE_LEVEL mFeatureLevel;
-	ID3D11DeviceContext* mImmContext;
-
-	IDXGIDevice* mDxgiDevice;
-	IDXGIAdapter* mDxgiAdapter;
-	IDXGIFactory* mDxgiFactory;
-
-	friend class SwapChain; //make a friend class to allow for use
+	friend class SwapChain;
 };
-

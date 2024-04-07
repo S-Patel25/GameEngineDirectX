@@ -10,7 +10,7 @@ int main()
 
 	if (app.init())
 	{
-		while (app.isRunning()) //test window
+		while (app.isRun()) //test window
 		{
 			app.broadcast();
 		}
