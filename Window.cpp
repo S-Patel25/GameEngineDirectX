@@ -1,135 +1,143 @@
 #include "Window.h"
 
-//Window* window = nullptr;
-
+//Window* window=nullptr;
 
 Window::Window()
 {
 
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) //event handling and callbacks
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-    switch (msg)
-    {
-    case WM_CREATE:
-    {
-        // event fired when the window is created
-        // collected here..
-        Window* window = (Window*)((LPCREATESTRUCT)lparam)->lpCreateParams;
-        // and then stored for later lookup
-        SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)window);
-        window->setHWND(hwnd);
-        window->onCreate();
-        break;
-    }
-    case WM_DESTROY:
-    {
-        // Event fired when the window is destroyed
-        Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-        window->onDestroy();
-        ::PostQuitMessage(0);
-        break;
-    }
-    default:
-        return::DefWindowProc(hwnd, msg, wparam, lparam); 
-    }
+	//GetWindowLong(hwnd,)
+	switch (msg)
+	{
+	case WM_CREATE:
+	{
+		// Event fired when the window is created
 
-    return NULL;
+		Window* window = (Window*)((LPCREATESTRUCT)lparam)->lpCreateParams;
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)window);
+		window->setHWND(hwnd);
+		window->onCreate();
+		break;
+	}
+
+	case WM_DESTROY:
+	{
+		// Event fired when the window is destroyed
+		Window* window = (Window*)GetWindowLong(hwnd, GWLP_USERDATA);
+		window->onDestroy();
+		::PostQuitMessage(0);
+		break;
+	}
 
 
+	default:
+		return ::DefWindowProc(hwnd, msg, wparam, lparam);
+	}
+
+	return NULL;
 }
+
 
 bool Window::init()
 {
-    WNDCLASSEX wc; //windown api class
-
-    //setting attributes for the window
-    wc.cbClsExtra = NULL;
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.cbWndExtra = NULL;
-    wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hInstance = NULL;
-    wc.lpszClassName = "MyWindowClass";
-    wc.lpszMenuName = "";
-    wc.style = NULL;
-    wc.lpfnWndProc = &WndProc;
 
 
-    if (!::RegisterClassEx(&wc)) //if class doesn't register correctly (essentially a null pointer check)
-    {
-        return false;
-    }
+	//Setting up WINDOW
+	WNDCLASSEX wc;
+	wc.cbClsExtra = NULL;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.cbWndExtra = NULL;
+	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hInstance = NULL;
+	wc.lpszClassName = "MyWindowClass";
+	wc.lpszMenuName = "";
+	wc.style = NULL;
+	wc.lpfnWndProc = &WndProc;
 
-    m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, "MyWindowClass", "DirectX", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
-        NULL, NULL, NULL, this); //create window based on params
+	if (!::RegisterClassEx(&wc)) // essentially a nullptr check
+		return false;
 
-    if (!m_hwnd) //null pointer check
-    {
-        return false;
-    }
+		
+	m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, "MyWindowClass", "DirectX Application",
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
+		NULL, NULL, NULL, this); //Creation of the window
 
-    //show window
-    ::ShowWindow(m_hwnd, SW_SHOW);
-    ::UpdateWindow(m_hwnd);
-   
+	if (!m_hwnd)
+		return false; //if the creation fail return false
 
-    //flag for if window is running
-    m_is_run = true;
-    return true;
-}
+	
+	::ShowWindow(m_hwnd, SW_SHOW);
+	::UpdateWindow(m_hwnd); //show the window
 
-bool Window::release()
-{
-    //destroy the window
-    if (!::DestroyWindow(m_hwnd))
-    {
-        return false;
-    }
+	m_is_run = true;
 
-
-    return true;
+	return true;
 }
 
 bool Window::broadcast()
 {
-    MSG msg;
+	MSG msg;
 
-    while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+	this->onUpdate();
 
-    this->onUpdate();
+	while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
 
-    Sleep(0); //optimize a bit
+	Sleep(1);
 
-    return true;
+	return true;
 }
 
-bool Window::isRunning()
+
+bool Window::release()
 {
-    return m_is_run;
+	//Destroy the window
+	if (!::DestroyWindow(m_hwnd))
+		return false;
+
+	return true;
+}
+
+bool Window::isRun()
+{
+	return m_is_run;
 }
 
 RECT Window::getClientWindowRect()
 {
-    RECT rect;
-
-    ::GetClientRect(this->m_hwnd, &rect);
-    return rect;
+	RECT rc;
+	::GetClientRect(this->m_hwnd, &rc); //get size of window
+	return rc;
 }
 
 void Window::setHWND(HWND hwnd)
 {
-    this->m_hwnd = hwnd;
+	this->m_hwnd = hwnd;
+}
+
+void Window::onCreate()
+{
+}
+
+void Window::onUpdate()
+{
 }
 
 void Window::onDestroy()
 {
-    m_is_run = false;
+	m_is_run = false;
+}
+
+Window::~Window()
+{
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <Windows.h> //library to create window
+#include <Windows.h>
 
 
 
@@ -7,23 +7,26 @@ class Window
 {
 public:
 	Window();
-
-	bool init(); //init window
-	bool release(); //release window
+	
+	bool init(); //Initialize the window
 	bool broadcast();
-	bool isRunning();
+	
+	bool release(); //show up the window
+	bool isRun();
 
-	RECT getClientWindowRect(); //to get window size of client app
+	RECT getClientWindowRect();
 	void setHWND(HWND hwnd);
 
-	//event stuff
 
-	virtual void onCreate() = 0;
-	virtual void onUpdate() = 0;
-	virtual void onDestroy() = 0;
+	//EVENTS
+	virtual void onCreate();
+	virtual void onUpdate();
+	virtual void onDestroy();
 
+
+	~Window();
 protected:
+
 	HWND m_hwnd;
 	bool m_is_run;
 };
-

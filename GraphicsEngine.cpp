@@ -1,81 +1,88 @@
 #include "GraphicsEngine.h"
-
-
+#include "SwapChain.h"
+#include "DeviceContext.h"
 
 GraphicsEngine::GraphicsEngine()
 {
-
 }
+
 bool GraphicsEngine::init()
 {
+	//INITAILIZE DIRECTX API
+	D3D_DRIVER_TYPE driver_types[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE
+	};
+	UINT num_driver_types = ARRAYSIZE(driver_types);
 
-    //INTIAIZLED DIRECTX API
-    D3D_DRIVER_TYPE driverTypes[] =
-    {
-        D3D_DRIVER_TYPE_HARDWARE,
-        D3D_DRIVER_TYPE_WARP,
-        D3D_DRIVER_TYPE_REFERENCE
-    };
+	D3D_FEATURE_LEVEL feature_levels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0 //version of api
+	};
+	UINT num_feature_levels = ARRAYSIZE(feature_levels);
 
-    UINT numDriverTypes = ARRAYSIZE(driverTypes);
+	HRESULT res = 0;
 
-    D3D_FEATURE_LEVEL featureLevels[] =
-    {
-        D3D_FEATURE_LEVEL_11_0 //feauture level of directx
-    };
+	ID3D11DeviceContext* m_imm_context;
 
-    UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+	for (UINT driver_type_index = 0; driver_type_index < num_driver_types;)
+	{
+		res = D3D11CreateDevice(NULL, driver_types[driver_type_index], NULL, NULL, feature_levels,
+			num_feature_levels, D3D11_SDK_VERSION, &m_d3d_device, &m_feature_level, &m_imm_context);
 
-    HRESULT res = 0;
+		if (SUCCEEDED(res))
+		{
+			break;
+		}
+			
+		++driver_type_index; //performance increase
+	}
+	if (FAILED(res))
+	{
+		return false;
+	}
 
-    for (UINT driverIndex = 0; driverIndex < numDriverTypes;) //loop through direct x driver types till finds succesful one
-    {
-         res = D3D11CreateDevice(NULL, driverTypes[driverIndex], NULL, NULL, 
-            featureLevels, numFeatureLevels,
-            D3D11_SDK_VERSION, 
-            &mD3dDevice, &mFeatureLevel, &mImmContext); //creates the directx device
+	m_imm_device_context = new DeviceContext(m_imm_context);
 
-        if (SUCCEEDED(res))
-        {
-            break; //successfully creates device
-        }
 
-        ++driverIndex; //for better performance
-    }
+	m_d3d_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgi_device);
+	m_dxgi_device->GetParent(__uuidof(IDXGIAdapter), (void**)&m_dxgi_adapter);
+	m_dxgi_adapter->GetParent(__uuidof(IDXGIFactory), (void**)&m_dxgi_factory);
 
-    if (FAILED(res))
-    {
-        return false;
-    }
-
-    mD3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&mDxgiDevice);
-    mDxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&mDxgiAdapter);
-    mDxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&mDxgiFactory);
-
-    return true;
+	return true;
 }
+
 
 bool GraphicsEngine::release()
 {
-    mDxgiDevice->Release();
-    mDxgiAdapter->Release();
-    mDxgiFactory->Release();
+	m_dxgi_device->Release(); //free resources
+	m_dxgi_adapter->Release();
+	m_dxgi_factory->Release();
 
-    mImmContext->Release();
-    mD3dDevice->Release(); //release resources used
+	m_imm_device_context->release();
+	m_d3d_device->Release();
 
-
-
-    return true;
+	return true;
 }
 
-GraphicsEngine* GraphicsEngine::get()
+GraphicsEngine::~GraphicsEngine()
 {
-    static GraphicsEngine engine; //since its static, will only be created once when ran
-    return &engine;
 }
 
 SwapChain* GraphicsEngine::createSwapChain()
 {
-    return new SwapChain();
+	return new SwapChain();
+}
+
+DeviceContext* GraphicsEngine::getImmediateDeviceContext()
+{
+	return this->m_imm_device_context;
+}
+
+GraphicsEngine* GraphicsEngine::get()
+{
+	static GraphicsEngine engine; //static for global instance (singleton)
+	return &engine;
 }

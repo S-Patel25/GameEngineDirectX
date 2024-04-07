@@ -1,31 +1,40 @@
 #include "AppWindow.h"
 
+
+
 AppWindow::AppWindow()
 {
+}
 
+
+AppWindow::~AppWindow()
+{
 }
 
 void AppWindow::onCreate()
 {
-	//Window::onCreate();
+	Window::onCreate();
 	GraphicsEngine::get()->init();
+	m_swap_chain = GraphicsEngine::get()->createSwapChain();
 
-	mSwapChain = GraphicsEngine::get()->createSwapChain();
+	RECT rc = this->getClientWindowRect();
+	m_swap_chain->init(this->m_hwnd, rc.right - rc.left, rc.bottom - rc.top); //init swap chain otherwise read access vio and nullptr error occurs
 
-	RECT rect = this->getClientWindowRect();
-	mSwapChain->init(this->m_hwnd, rect.right - rect.left, rect.bottom - rect.top);;//difference between width and height
 }
 
 void AppWindow::onUpdate()
 {
+	Window::onUpdate();
+	GraphicsEngine::get()->getImmediateDeviceContext()->clearRenderTargetColor(this->m_swap_chain,
+		0, 1, 0, 1);
 
+	m_swap_chain->present(true);
 }
 
 void AppWindow::onDestroy()
 {
 	Window::onDestroy();
 
-	mSwapChain->release();
+	m_swap_chain->release();
 	GraphicsEngine::get()->release();
-
 }
